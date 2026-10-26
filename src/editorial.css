@@ -94,6 +94,9 @@ html[data-theme=dark] .entry-header { background: var(--paper); }
 .entry-submit { margin-top: 13px; width: 100%; min-height: 52px; background: var(--accent-action); color: #fff; border: 1px solid var(--accent-action); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; padding: 0 18px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .entry-submit span:last-child { font-size: 24px; line-height: 1; }
 .entry-submit:hover { background: var(--ink); border-color: var(--ink); }
+.entry-recovery-link { justify-self: end; width: fit-content; padding: 3px 0; background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.entry-recovery-link:hover { color: var(--ink); }
+.entry-recovery-back { display: block; margin-top: 18px; }
 .entry-message { margin-top: 20px; padding: 15px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; overflow-wrap: anywhere; }
 .entry-account-bottom { padding: 0 32px 26px; color: var(--quiet); flex-wrap: wrap; }
 .entry-preview { padding: 80px 26px 100px; }
@@ -293,6 +296,23 @@ html[data-theme=dark] .featured-card span,
 html[data-theme=dark] .featured-card svg:last-child { color: var(--accent); }
 
 /* A coordinated gym photo series sits beneath the blue dashboard surfaces. */
+/* The same series stays visible on light surfaces under a soft, readable veil. */
+html[data-theme=light] .next-card { background: linear-gradient(90deg, rgba(237,237,235,.98), rgba(237,237,235,.91) 58%, rgba(237,237,235,.69)), url('/images/dashboard-next.png') 68% center / cover no-repeat; }
+html[data-theme=light] .stat-grid { background: var(--sheet); }
+html[data-theme=light] .stat-card { background-color: var(--sheet); background-image: linear-gradient(90deg, rgba(237,237,235,.97), rgba(237,237,235,.87) 55%, rgba(237,237,235,.67)), var(--stat-photo); background-size: cover; background-position: right center; }
+html[data-theme=light] .stat-card:nth-child(1) { --stat-photo: url('/images/stat-workouts.png'); }
+html[data-theme=light] .stat-card:nth-child(2) { --stat-photo: url('/images/stat-completed.png'); }
+html[data-theme=light] .stat-card:nth-child(3) { --stat-photo: url('/images/stat-missed.png'); }
+html[data-theme=light] .stat-card:nth-child(4) { --stat-photo: url('/images/stat-goal.png'); }
+html[data-theme=light] .panel:not(.recommendation-panel):not(.advice-panel).week-panel { background: linear-gradient(90deg, rgba(237,237,235,.98), rgba(237,237,235,.92) 62%, rgba(237,237,235,.72)), url('/images/dashboard-week.png') 68% center / cover no-repeat; }
+html[data-theme=light] .recommendation-panel { background: linear-gradient(90deg, rgba(237,237,235,.98), rgba(237,237,235,.91) 62%, rgba(237,237,235,.72)), url('/images/dashboard-recommendation.png') 65% center / cover no-repeat; }
+html[data-theme=light] .empty-state.roomy { background: linear-gradient(90deg, rgba(237,237,235,.97), rgba(237,237,235,.88) 60%, rgba(237,237,235,.65)), url('/images/plans-pullup.png') 76% center / cover no-repeat; border-style: solid; }
+html[data-theme=light] .plan-card-preview { background: linear-gradient(90deg, rgba(237,237,235,.98), rgba(237,237,235,.91) 58%, rgba(237,237,235,.68)), var(--plan-photo) 72% center / cover no-repeat; }
+html[data-theme=light] .panel:not(.recommendation-panel):not(.advice-panel).calendar-panel { background: linear-gradient(90deg, rgba(237,237,235,.98), rgba(237,237,235,.92) 58%, rgba(237,237,235,.75)), url('/images/calendar-schedule.png') 74% center / cover no-repeat; }
+html[data-theme=light] .panel:not(.recommendation-panel):not(.advice-panel).day-panel { background: linear-gradient(90deg, rgba(237,237,235,.98), rgba(237,237,235,.90) 58%, rgba(237,237,235,.70)), url('/images/calendar-day.png') 76% center / cover no-repeat; }
+html[data-theme=light] .panel:not(.recommendation-panel):not(.advice-panel).profile-panel { background-color: var(--sheet); background-image: linear-gradient(180deg, rgba(237,237,235,.86), rgba(237,237,235,.95) 62%, #ededeb), url('/images/profile-details.png'); background-size: 100% 470px, auto 470px; background-position: top right; background-repeat: no-repeat; }
+html[data-theme=light] .advice-panel { background: linear-gradient(90deg, rgba(237,237,235,.98), rgba(237,237,235,.91) 60%, rgba(237,237,235,.72)), url('/images/profile-advice.png') 72% center / cover no-repeat; }
+html[data-theme=light] .panel:not(.recommendation-panel):not(.advice-panel).data-panel { background: linear-gradient(90deg, rgba(237,237,235,.98), rgba(237,237,235,.91) 60%, rgba(237,237,235,.72)), url('/images/profile-data.png') 72% center / cover no-repeat; }
 html[data-theme=dark] .next-card {
   background: linear-gradient(90deg, rgba(34,43,50,.97), rgba(34,43,50,.88) 58%, rgba(34,43,50,.73)), url('/images/dashboard-next.png') 68% center / cover no-repeat;
 }

@@ -7,7 +7,7 @@ import type { Exercise } from './db'
 import ExerciseMotion from './ExerciseMotion'
 
 type User = { id: string; email: string; name?: string }
-type Mode = 'in' | 'up'
+type Mode = 'in' | 'up' | 'forgot' | 'reset'
 
 const copy = {
   ru: {
@@ -16,6 +16,7 @@ const copy = {
     entry: 'Личный кабинет', enter: 'Вход', create: 'Регистрация', name: 'Имя',
     email: 'Электронная почта', password: 'Пароль', submitIn: 'Войти в аккаунт',
     submitUp: 'Создать аккаунт', foot: 'Ваши записи сохраняются в вашем аккаунте.',
+    forgot: 'Забыли пароль?', recover: 'Восстановить пароль', sendReset: 'Отправить письмо', reset: 'Новый пароль', savePassword: 'Сохранить пароль', confirmPassword: 'Повторите пароль', backToSignIn: 'Вернуться ко входу', resetSent: 'Если аккаунт с таким адресом существует, письмо для восстановления отправлено. Проверьте почту и папку «Спам».', resetDone: 'Пароль изменён. Теперь войдите с новым паролем.', passwordsMismatch: 'Пароли не совпадают.',
     checkEmail: 'Аккаунт создан. Если пришло письмо с подтверждением, откройте его и затем войдите.',
     loading: 'Загружаем аккаунт…', config: 'Для входа нужно подключить Neon.',
     preview: 'Загляните внутрь', previewTitle: 'Найди своё движение.', previewHand: 'ПРОБУЙ',
@@ -32,6 +33,7 @@ const copy = {
     entry: 'Shaxsiy kabinet', enter: 'Kirish', create: 'Ro‘yxatdan o‘tish', name: 'Ism',
     email: 'Elektron pochta', password: 'Parol', submitIn: 'Hisobga kirish',
     submitUp: 'Hisob yaratish', foot: 'Yozuvlaringiz hisobingizda saqlanadi.',
+    forgot: 'Parolni unutdingizmi?', recover: 'Parolni tiklash', sendReset: 'Xat yuborish', reset: 'Yangi parol', savePassword: 'Parolni saqlash', confirmPassword: 'Parolni takrorlang', backToSignIn: 'Kirishga qaytish', resetSent: 'Agar bu manzilda hisob bo‘lsa, tiklash xati yuborildi. Pochtangizni tekshiring.', resetDone: 'Parol o‘zgartirildi. Endi yangi parol bilan kiring.', passwordsMismatch: 'Parollar mos kelmaydi.',
     checkEmail: 'Hisob yaratildi. Tasdiqlash xati kelsa, uni oching va keyin kiring.',
     loading: 'Hisob yuklanmoqda…', config: 'Kirish uchun Neon xizmatini ulang.',
     preview: 'Ichkariga nazar', previewTitle: 'O‘z harakatingni top.', previewHand: 'SINAB KO‘R',
@@ -48,6 +50,7 @@ const copy = {
     entry: 'Your account', enter: 'Sign in', create: 'Sign up', name: 'Name',
     email: 'Email', password: 'Password', submitIn: 'Sign in',
     submitUp: 'Create account', foot: 'Your records are saved to your account.',
+    forgot: 'Forgot password?', recover: 'Reset password', sendReset: 'Send reset email', reset: 'New password', savePassword: 'Save password', confirmPassword: 'Confirm password', backToSignIn: 'Back to sign in', resetSent: 'If an account exists for this email, a reset link has been sent. Check your inbox and spam folder.', resetDone: 'Password updated. Sign in with your new password.', passwordsMismatch: 'Passwords do not match.',
     checkEmail: 'Account created. If a confirmation email arrives, open it and then sign in.',
     loading: 'Loading account…', config: 'Connect Neon to enable sign-in.',
     preview: 'Look inside', previewTitle: 'Find your movement.', previewHand: 'TRY IT',
@@ -72,10 +75,11 @@ export default function AuthGateEditorial({ children }: { children: (user: User,
   const [theme, setTheme] = useState<'light' | 'dark'>(() => localStorage.getItem('atletika-theme') === 'dark' ? 'dark' : 'light')
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(cloudConfigured)
-  const [mode, setMode] = useState<Mode>('in')
+  const [mode, setMode] = useState<Mode>(() => new URLSearchParams(window.location.search).has('token') ? 'reset' : 'in')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [previewPlace, setPreviewPlace] = useState<'Все' | 'Дом' | 'Зал'>('Все')
@@ -155,6 +159,22 @@ export default function AuthGateEditorial({ children }: { children: (user: User,
     if (!cloud) return
     setBusy(true); setMessage('')
     try {
+      if (mode === 'forgot') {
+        const result = await cloud.auth.requestPasswordReset({ email: email.trim(), redirectTo: `${window.location.origin}${window.location.pathname}` })
+        if (result.error) throw result.error
+        setMessage(t.resetSent)
+        return
+      }
+      if (mode === 'reset') {
+        const token = new URLSearchParams(window.location.search).get('token')
+        if (!token) throw new Error('Reset link is missing or expired.')
+        if (password !== confirmPassword) throw new Error(t.passwordsMismatch)
+        const result = await cloud.auth.resetPassword({ newPassword: password, token })
+        if (result.error) throw result.error
+        window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`)
+        setPassword(''); setConfirmPassword(''); setMode('in'); setMessage(t.resetDone)
+        return
+      }
       const result = mode === 'up'
         ? await cloud.auth.signUp.email({ name: name.trim(), email: email.trim(), password })
         : await cloud.auth.signIn.email({ email: email.trim(), password })
@@ -198,18 +218,21 @@ export default function AuthGateEditorial({ children }: { children: (user: User,
         <aside id="account" className="entry-account">
           <div className="entry-account-top"><span>02 / {t.entry}</span><span>GEORGRAD</span></div>
           <div className="entry-account-inner">
-            <div className="entry-account-title"><span>{t.journal}</span><h2 className={mode === 'up' ? 'entry-registration-title' : undefined}>{mode === 'in' ? t.enter : t.create}</h2><p>{t.foot}</p></div>
+            <div className="entry-account-title"><span>{t.journal}</span><h2 className={mode !== 'in' ? 'entry-registration-title' : undefined}>{mode === 'in' ? t.enter : mode === 'up' ? t.create : mode === 'forgot' ? t.recover : t.reset}</h2><p>{t.foot}</p></div>
             {!cloudConfigured ? <div className="entry-message" role="alert">{t.config}</div> : loading ? <div className="entry-message">{t.loading}</div> : <>
-              <div className="entry-tabs" role="tablist" aria-label={t.entry}>
+              {(mode === 'in' || mode === 'up') && <div className="entry-tabs" role="tablist" aria-label={t.entry}>
                 <button role="tab" aria-selected={mode === 'in'} className={mode === 'in' ? 'active' : ''} onClick={() => { setMode('in'); setMessage('') }}>{t.enter}</button>
                 <button role="tab" aria-selected={mode === 'up'} className={mode === 'up' ? 'active' : ''} onClick={() => { setMode('up'); setMessage('') }}>{t.create}</button>
-              </div>
+              </div>}
               <form onSubmit={submit}>
                 {mode === 'up' && <label>{t.name}<input required autoComplete="name" value={name} onChange={e => setName(e.target.value)} /></label>}
-                <label>{t.email}<input required type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} /></label>
-                <label>{t.password}<input required type="password" minLength={8} autoComplete={mode === 'up' ? 'new-password' : 'current-password'} value={password} onChange={e => setPassword(e.target.value)} /></label>
-                <button className="entry-submit" disabled={busy} type="submit"><span>{busy ? '…' : mode === 'up' ? t.submitUp : t.submitIn}</span><span aria-hidden="true">↗</span></button>
+                {mode !== 'reset' && <label>{t.email}<input required type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} /></label>}
+                {(mode === 'in' || mode === 'up' || mode === 'reset') && <label>{mode === 'reset' ? t.reset : t.password}<input required type="password" minLength={8} autoComplete={mode === 'in' ? 'current-password' : 'new-password'} value={password} onChange={e => setPassword(e.target.value)} /></label>}
+                {mode === 'reset' && <label>{t.confirmPassword}<input required type="password" minLength={8} autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} /></label>}
+                {mode === 'in' && <button className="entry-recovery-link" type="button" onClick={() => { setMode('forgot'); setMessage(''); setPassword('') }}>{t.forgot}</button>}
+                <button className="entry-submit" disabled={busy} type="submit"><span>{busy ? '…' : mode === 'up' ? t.submitUp : mode === 'forgot' ? t.sendReset : mode === 'reset' ? t.savePassword : t.submitIn}</span><span aria-hidden="true">↗</span></button>
               </form>
+              {(mode === 'forgot' || mode === 'reset') && <button className="entry-recovery-link entry-recovery-back" type="button" onClick={() => { setMode('in'); setMessage(''); if (mode === 'reset') window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`) }}>{t.backToSignIn}</button>}
               {message && <div className="entry-message" role="status">{message}</div>}
             </>}
           </div>
